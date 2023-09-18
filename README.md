@@ -59,3 +59,8 @@ viewer.html 을 웹 브라우저 (Microsoft Edge, Google Chrome, Mozilla Firefox
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+# 사용된 써드 파티 라이브러리 및 리소스
+
+* jQuery - https://jquery.com/
+* Google Fonts - Nanum Gothic Coding - https://fonts.google.com/specimen/Nanum+Gothic+Coding?query=Nanum+Go
