@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8"/>
+        <title>Cartoon Viewer</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+        <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding&display=swap" rel="stylesheet"/>
+        <style type="text/css">
+        html {
+            border: 0;
+            padding: 0;
+            border: 0;
+        }
+        body {
+            border: 0;
+            padding: 0;
+            border: 0;
+        }
+        body.dark {
+            background-color: #282a36;
+        }
+        body div.viewer_root, body div.viewer_root div.viewer_div {
+            border: 0;
+            padding: 0;
+            border: 0;
+        }
+        body div.viewer_root.dark, body div.viewer_root.dark div.viewer_div {
+            background-color: #282a36;
+        }
+        body div.viewer_root, body div.viewer_root div, body div.viewer_root p, body div.viewer_root td, body div.viewer_root th
+        , body div.viewer_root span, body div.viewer_root a, body div.viewer_root button, body div.viewer_root input, body div.viewer_root select
+        , body div.viewer_root textarea, body div.viewer_root label {
+            font-family: 'Nanum Gothic Coding', cursive;
+        }
+        body div.viewer_root.dark, body div.viewer_root.dark p, body div.viewer_root.dark div, body div.viewer_root.dark span {
+            color: #f8f8f2;
+        }
+        body div.viewer_root.dark td, body div.viewer_root.dark th
+        , body div.viewer_root.dark a, body div.viewer_root.dark button, body div.viewer_root.dark input, body div.viewer_root.dark select
+        , body div.viewer_root.dark textarea, body div.viewer_root.dark label {
+            background-color: #44475a;
+            color: #f8f8f2;
+        }
+        body div.viewer_root .full {
+            width:100%;
+        }
+        body div.viewer_root table.layout th, body div.viewer_root table.layout td {
+            border: 0;
+            padding: 5px 8px 5px 8px;
+            text-align: left;
+        }
+        body div.viewer_root input.small {
+            width: 80px;
+        }
+        body div.viewer_root .viewer_footer_remote {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background-color: transparent;
+            width: 100px;
+            height: 50px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        </style>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script type="text/javascript">
+
+        /* 
+        startsWith Polyfill
+        출처 : https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
+        */
+        if(!String.prototype.startsWith) {
+            String.prototype.startsWith = function(search, pos) {
+                return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+            };
+        }
+
+        /* 
+        endsWith Polyfill
+        출처 : https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
+        */
+        if(!String.prototype.endsWith) {
+            String.prototype.endsWith = function(searchString, position){
+                var subjectString = this.toString();
+                if(typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+                    position = subjectString.length;
+                }
+                position -= searchString.length;
+                var lastIndex = subjectString.indexOf(searchString, position);
+                return lastIndex !== -1 && lastIndex === position;
+            };
+        }
+
+        /*
+        trim Polyfill
+        출처 : https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/String/trim
+        */
+        if(!String.prototype.trim) {
+            String.prototype.trim = function() {
+                return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+            };
+        }
+
+        $(function(){
+            var root = $('.viewer_root');
+            var cont = root.find('.viewer_content');
+
+            var selWork     = root.find('.select_works');
+            var inpFormat   = root.find('.input_file_format');
+            var inpNumStart = root.find('.input_number_start');
+            var inpNumEnd   = root.find('.input_number_end');
+            var btnApply    = root.find('.input_button_apply');
+            var btnTop      = root.find('.input_button_top');
+
+            var countApplies = 0;
+
+            var strReplace = function(originalStr, targetStr, replacements) {
+                return String(originalStr).split(targetStr).join(replacements); 
+            };
+
+            var padZero = function(integerTarget, integerDigits) {
+                var str = String(integerTarget);
+                if(typeof(integerDigits) != 'number') integerDigits = parseInt(String(integerDigits));
+                var len = str.length;
+                while(len < integerDigits) {
+                    str = '0' + str;
+                    len = str.length;
+                }
+                return str;
+            };
+
+            var fApply = function(warn) {
+                var formats = inpFormat.val();
+                var starts  = parseInt(String(inpNumStart.val()));
+                var ends    = parseInt(String(inpNumEnd.val()));
+                if(starts > ends) {
+                    if(warn) alert('숫자 범위 지정이 잘못되어 있습니다.');
+                    return;
+                }
+                if(formats.indexOf(">") >= 0 || formats.indexOf("<") >= 0) {
+                    if(warn) alert('파일 이름에 허용되지 않는 문자가 포함되어 있습니다. (사용 불가 : <, >)');
+                    return;
+                }
+                cont.empty();
+
+                var divList = null;
+                if(selWork.val() == 'embed') {
+                    cont.append("<div class='viewer_div full viewer_div_content_list'><h3 class='full'>목차</h3><ul></ul></div>");
+                    divList = cont.find('.viewer_div_content_list');
+                }
+
+                for(var idx=starts; idx<=ends; idx++) {
+                    var htmls =  "<div class='viewer_div full viewer_div_content_element' data-no='" + idx + "'>";
+                    if(selWork.val() == 'embed') htmls += "<h3 class='full'></h3><a name='c" + idx + "'/><div class='viewer_div full viewer_div_content_display'></div>";
+                    if(selWork.val() == 'link' ) htmls += "<a href='#' class='full' target='_blank'></a>";
+                    
+                    htmls += "</div>";
+                    cont.append(htmls);
+                    var contElem = cont.find(".viewer_div_content_element[data-no='" + idx + "']");
+
+                    var fileName = String(formats);
+                    for(var fdx=1; fdx<=20; fdx++) {
+                        fileName = strReplace(fileName, '[' + padZero(0, fdx) + ']', padZero(idx, fdx));
+                    }
+
+                    if(selWork.val() == 'embed') {
+                        var h3 = contElem.find('h3');
+                        var divCont = contElem.find('.viewer_div_content_display');
+
+                        h3.text(fileName);
+                        divCont.html("<img src='' class='full'/>");
+                        divCont.find('img').attr('src', fileName);
+                    }
+                    if(selWork.val() == 'link' ) {
+                        var a = contElem.find('a');
+                        a.attr('href', fileName);
+                        a.text(fileName);
+                    }
+
+                    if(divList != null) {
+                        divList.find('ul').append("<li><a href='#c" + idx + "'>" + fileName + "</a></li>");
+                    }
+                }
+                divCont.append("<div class='viewer_div full dummy' style='height:50px;'></div>");
+                countApplies++;
+            };
+
+            btnApply.on('click', function() {
+                fApply(true);
+            });
+
+            inpNumStart.on('change', function() {
+                if(countApplies >= 1) fApply();
+            });
+
+            inpNumEnd.on('change', function() {
+                if(countApplies >= 1) fApply();
+            });
+        });
+        </script>
+    </head>
+    <body class="dark">
+        <div class="viewer_div full viewer_root dark">
+            <div class="viewer_div full viewer_header">
+                <table class="full layout">
+                    <colgroup>
+                        <col style="width:140px;"/>
+                        <col/>
+                        <col style="width:100px;"/>
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th>동작</th>
+                            <td colspan="2">
+                                <select class="select select_works" tabindex="1">
+                                    <option value="embed">Embed</option>
+                                    <option value="link">Links</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>파일 이름 규칙</th>
+                            <td><input type="text" class="input input_file_format" style="width: 50%" placeholder="예) 만화[00].png" tabindex="2"/></td>
+                            <td rowspan="2"><input type="button" class="input input_button_apply" style="width: 100%;" value="적용" tabindex="5"/></td>
+                        </tr>
+                        <tr>
+                            <th>숫자 범위</th>
+                            <td>
+                                <input type="number" class="input input_number_start small" step="1" min="0" value="0" tabindex="3"/>~<input type="number" class="input input_number_end small" step="1" min="0" value="0" tabindex="4"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="viewer_div full viewer_content">
+
+            </div>
+            <div class="viewer_div viewer_footer_remote">
+                <div><input type="button" class="input input_button_top" value="TOP↑"/></div>
+                <span style="font-size: 6px;">version 2023.09.18</span>
+            </div>
+        </div>
+    </body>
+</html>
+
