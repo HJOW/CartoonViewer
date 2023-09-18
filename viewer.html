@@ -191,6 +191,10 @@
                 fApply(true);
             });
 
+            btnTop.on('click', function() {
+                window.scrollTo(0, 0);
+            });
+
             inpNumStart.on('change', function() {
                 if(countApplies >= 1) fApply();
             });
