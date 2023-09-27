@@ -7,6 +7,9 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
         <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding&display=swap" rel="stylesheet"/>
         <style type="text/css">
+        .invisible {
+            display: none !important;
+        }
         html {
             border: 0;
             padding: 0;
@@ -18,7 +21,7 @@
             border: 0;
         }
         body.dark {
-            background-color: #282a36;
+            background-color: rgb(40, 42, 54);
         }
         body div.viewer_root, body div.viewer_root div.viewer_div {
             border: 0;
@@ -26,7 +29,7 @@
             border: 0;
         }
         body div.viewer_root.dark, body div.viewer_root.dark div.viewer_div {
-            background-color: #282a36;
+            background-color: rgb(40, 42, 54);
         }
         body div.viewer_root, body div.viewer_root div, body div.viewer_root p, body div.viewer_root td, body div.viewer_root th
         , body div.viewer_root span, body div.viewer_root a, body div.viewer_root button, body div.viewer_root input, body div.viewer_root select
@@ -34,13 +37,13 @@
             font-family: 'Nanum Gothic Coding', cursive;
         }
         body div.viewer_root.dark, body div.viewer_root.dark p, body div.viewer_root.dark div, body div.viewer_root.dark span {
-            color: #f8f8f2;
+            color: rgb(248, 248, 242);
         }
         body div.viewer_root.dark td, body div.viewer_root.dark th
         , body div.viewer_root.dark a, body div.viewer_root.dark button, body div.viewer_root.dark input, body div.viewer_root.dark select
         , body div.viewer_root.dark textarea, body div.viewer_root.dark label {
-            background-color: #44475a;
-            color: #f8f8f2;
+            background-color: rgb(68, 71, 90);
+            color: rgb(248, 248, 242);
         }
         body div.viewer_root .full {
             width:100%;
@@ -57,16 +60,27 @@
             position: fixed;
             bottom: 0;
             right: 0;
-            background-color: transparent;
             width: 100px;
             height: 50px;
             text-align: center;
             vertical-align: middle;
         }
+        body div.viewer_root.dark .viewer_list td, body div.viewer_root.dark .viewer_list th, body div.viewer_root.dark .viewer_list a {
+            background-color: rgb(40, 42, 54);
+        }
+        body div.viewer_root.dark .viewer_footer_remote {
+            background-color: rgba(40, 42, 54, 0.3) !important;
+        }
         body div.viewer_root .viewer_footer_remote div, body div.viewer_root .viewer_footer_remote span {
-            background-color: transparent;
             text-align: center;
             vertical-align: middle;
+        }
+        body div.viewer_root.dark .viewer_footer_remote div, body div.viewer_root.dark .viewer_footer_remote span {
+            background-color: transparent !important;
+        }
+        body div.viewer_root .viewer_hidden {
+            height: 0px !important;
+            overflow: hidden !important;
         }
         </style>
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -110,14 +124,26 @@
 
         $(function(){
             var root = $('.viewer_root');
+            var lsdv = root.find('.viewer_list');
             var cont = root.find('.viewer_content');
+            var lists = [];
 
-            var selWork     = root.find('.select_works');
             var inpFormat   = root.find('.input_file_format');
             var inpNumStart = root.find('.input_number_start');
             var inpNumEnd   = root.find('.input_number_end');
-            var btnApply    = root.find('.input_button_apply');
+            var btnAddBuilt = root.find('.input_button_add_built');
             var btnTop      = root.find('.input_button_top');
+
+            var inpAddSingleUrl = root.find('.input_add_single_url');
+            var inpAddSingleNm  = root.find('.input_add_single_name');
+            var selAddSingleTyp = root.find('.select_add_single_type');
+            var btnAddSingle    = root.find('.input_button_add_single');
+
+            var btnBuildJson = root.find('.input_button_build_json');
+            var btnApplyJson = root.find('.input_button_apply_json');
+            var taJson       = root.find('.textarea_json');
+
+            var btnHiddenTool = root.find('.btn_hidden_tool');
 
             var countApplies = 0;
 
@@ -136,119 +162,375 @@
                 return str;
             };
 
-            var fApply = function(warn) {
+            var fBuildList = function() {
                 var formats = inpFormat.val();
                 var starts  = parseInt(String(inpNumStart.val()));
                 var ends    = parseInt(String(inpNumEnd.val()));
+
                 if(starts > ends) {
-                    if(warn) alert('숫자 범위 지정이 잘못되어 있습니다.');
-                    return;
+                    throw '숫자 범위 지정이 잘못되어 있습니다.';
                 }
                 if(formats.indexOf(">") >= 0 || formats.indexOf("<") >= 0) {
-                    if(warn) alert('파일 이름에 허용되지 않는 문자가 포함되어 있습니다. (사용 불가 : <, >)');
-                    return;
-                }
-                cont.empty();
-
-                var divList = null;
-                if(selWork.val() == 'embed') {
-                    cont.append("<div class='viewer_div full viewer_div_content_list'><h3 class='full'>목차</h3><ul></ul></div>");
-                    divList = cont.find('.viewer_div_content_list');
+                    throw '파일 이름에 허용되지 않는 문자가 포함되어 있습니다. (사용 불가 : <, >)';
                 }
 
-                for(var idx=starts; idx<=ends; idx++) {
-                    var htmls =  "<div class='viewer_div full viewer_div_content_element' data-no='" + idx + "'>";
-                    if(selWork.val() == 'embed') htmls += "<h3 class='full'></h3><a name='c" + idx + "'/><div class='viewer_div full viewer_div_content_display'></div>";
-                    if(selWork.val() == 'link' ) htmls += "<a href='#' class='full' target='_blank'></a>";
-                    
-                    htmls += "</div>";
-                    cont.append(htmls);
-                    var contElem = cont.find(".viewer_div_content_element[data-no='" + idx + "']");
+                var newList = [];
+                var idx = starts;
+                var no  = 0;
 
+                for(idx=starts; idx<=ends; idx++) {
                     var fileName = String(formats);
                     for(var fdx=1; fdx<=20; fdx++) {
                         fileName = strReplace(fileName, '[' + padZero(0, fdx) + ']', padZero(idx, fdx));
                     }
 
-                    if(selWork.val() == 'embed') {
+                    newList.push({
+                        type : 'image',
+                        name : fileName,
+                        url  : fileName,
+                        originalNumber : idx,
+                        attr : {}
+                    });
+                }
+                return newList;
+            };
+
+            var fReindexList = function() {
+                for(var idx=0; idx<lists.length; idx++) {
+                    lists[idx].index = idx;
+                }
+                taJson.val(JSON.stringify(lists));
+            };
+
+            var fRemove = function(listIndex) {
+                if(listIndex < 0 || listIndex >= lists.length) return;
+                lists.splice(listIndex, 1);
+                fRefresh();
+            };
+
+            var fRefresh = function() {
+                fReindexList();
+                var divList = lsdv.find('.viewer_list_elements');
+                cont.empty();
+                divList.empty();
+
+                if(lists.length >= 1) {
+                    for(var idx=0; idx<lists.length; idx++) {
+                        var element = lists[idx];
+                        var htmls =  "<div class='viewer_div full viewer_div_content_element' data-no='" + idx + "'>";
+                        htmls += "<h3 class='full'></h3><a name='c" + idx + "'/><div class='viewer_div full viewer_div_content_display'></div>";
+                        
+                        htmls += "</div>";
+                        cont.append(htmls);
+                        htmls = null;
+
+                        var contElem = cont.find(".viewer_div_content_element[data-no='" + idx + "']");
+                        
                         var h3 = contElem.find('h3');
                         var divCont = contElem.find('.viewer_div_content_display');
 
-                        h3.text(fileName);
-                        divCont.html("<img src='' class='full'/>");
-                        divCont.find('img').attr('src', fileName);
-                    }
-                    if(selWork.val() == 'link' ) {
-                        var a = contElem.find('a');
-                        a.attr('href', fileName);
-                        a.text(fileName);
-                    }
+                        h3.text(element.name);
 
-                    if(divList != null) {
-                        divList.find('ul').append("<li><a href='#c" + idx + "'>" + fileName + "</a></li>");
+                        if(element.type == 'image') {
+                            divCont.html("<img src='' class='full'/>");
+                            divCont.find('img').attr('src', element.url);
+                        } else if(element.type == 'video') {
+                            var attrType = 'video/mp4';
+                            if(element.attr.type) attrType = element.attr.type;
+
+                            divCont.html("<video controls autoplay class='full'></video>");
+                            divCont.find('video').append("<source src='" + strReplace(String(element.url), "'", "") + "' type='" + strReplace(String(attrType), "'", "") + "'/>");
+                        }
+
+                        if(divList != null) {
+                            divList.append("<tr data-index='" + element.index + "'><td><a href='#c" + idx + "'>" + element.name + "</a></td><td style='text-align: right;'><input type='button' value='X' class='input input_button_remove' data-index='" + element.index + "'/></td></tr>");
+                        }
+
+                        divCont.append("<div class='viewer_div full dummy' style='height:50px;'></div>");
                     }
+                    divList.find('.input_button_remove').each(function() {
+                        $(this).on('click', function() {
+                            fRemove(parseInt($(this).attr('data-index')));
+                        });
+                    });
+                } else {
+                    divList.append("<tr class='list_dummy'><td colspan='2'>목차가 비어있습니다.</td></tr>");
                 }
-                divCont.append("<div class='viewer_div full dummy' style='height:50px;'></div>");
-                countApplies++;
             };
 
-            btnApply.on('click', function() {
-                fApply(true);
+            var fAddBuilt = function(warn) {
+                try {
+                    var temp = fBuildList();
+                    for(var idx=0; idx<temp.length; idx++) {
+                        lists.push(temp[idx]);
+                    }
+                    fRefresh();
+                    countApplies++;
+                } catch(e) {
+                    if(warn) alert(e);
+                    console.log(e);
+                }
+            };
+
+            var fToggleToolArea = function() {
+                var hTool = root.find('.h_tool');
+                var dTool = root.find('.d_tool');
+
+                hTool.text(strReplace(strReplace(hTool.text(), '▼', ''), '▲', '').trim());
+                if(dTool.is('.invisible')) {
+                    dTool.removeClass('invisible');
+                    hTool.append(' ▲');
+                } else {
+                    dTool.addClass('invisible');
+                    hTool.append(' ▼');
+                }
+            };
+
+            btnAddBuilt.on('click', function() {
+                fAddBuilt(true);
             });
 
             btnTop.on('click', function() {
                 window.scrollTo(0, 0);
             });
 
-            inpNumStart.on('change', function() {
-                if(countApplies >= 1) fApply();
+            btnAddSingle.on('click', function() {
+                var url  = inpAddSingleUrl.val();
+                var name = inpAddSingleNm.val();
+                var type = selAddSingleTyp.val();
+
+                if(url == null || url.trim().length == 0) {
+                    alert('URL을 입력해주세요.');
+                    inpAddSingleUrl.focus();
+                    return;
+                }
+                if(name == null || name.trim().length == 0) {
+                    if(url == null || url.trim().length == 0) {
+                        alert('이름을 입력해주세요.');
+                        inpAddSingleNm.focus();
+                        return;
+                    } else {
+                        name = url;
+                    }
+                }
+                if(type == null || type.trim().length == 0) {
+                    alert('유형을 선택해주세요.');
+                    selAddSingleTyp.focus();
+                    return;
+                }
+
+                var element = {};
+                element.type = type;
+                element.name = name;
+                element.url  = url;
+                element.attr = {};
+
+                lists.push(element);
+
+                fRefresh();
             });
 
-            inpNumEnd.on('change', function() {
-                if(countApplies >= 1) fApply();
+            btnBuildJson.on('click', function() {
+                fReindexList();
             });
+
+            btnApplyJson.on('click', function() {
+                try {
+                    var json = taJson.val();
+                    if(json == null || json.trim().length == 0) {
+                        alert('JSON 을 입력해주세요.');
+                        taJson.focus();
+                        return;
+                    }
+                    lists = JSON.parse(json);
+                    fRefresh();
+                    countApplies++;
+                } catch(e) {
+                    alert('오류 : ' + e + '\n자세한 내용은 웹 브라우저의 콘솔을 확인해 주세요.');
+                    console.log(e);
+                }
+            });
+
+            btnHiddenTool.on('click', function() {
+                fToggleToolArea();
+            });
+
+            root.find('.h_tool').css('cursor', 'pointer');
+            root.find('.h_tool').on('click', function() {
+                fToggleToolArea();
+            });
+
+            root.find('.droparea').each(function() {
+                var area = $(this);
+                area.on('drop', function(e) {
+                    e.preventDefault();
+                    try {
+                        var files = e.originalEvent.dataTransfer.files;
+                        if(files.length == 0) return;
+                        for(var idx=0; idx<files.length; idx++) {
+                            lists.push({
+                                type : 'image',
+                                name : files[idx].name,
+                                url  : files[idx].name,
+                                originalNumber : idx,
+                                attr : {}
+                            });
+                            fRefresh();
+                        }
+                    } catch(e) {
+                        console.log(e);
+                    }
+                });
+                area.on('dragover', function(e) {
+                    e.preventDefault();
+                });
+            });
+
+            root.find('.dropareaJson').each(function() {
+                var area = $(this);
+                area.on('drop', function(e) {
+                    e.preventDefault();
+                    try {
+                        var files = e.originalEvent.dataTransfer.files;
+                        if(files.length == 0) return;
+                        var ls = [];
+                        for(var idx=0; idx<files.length; idx++) {
+                            ls.push({
+                                type : 'image',
+                                name : files[idx].name,
+                                url  : files[idx].name,
+                                originalNumber : idx,
+                                attr : {}
+                            });
+                        }
+                        taJson.val(JSON.stringify(ls));
+                    } catch(e) {
+                        console.log(e);
+                    }
+                });
+                area.on('dragover', function(e) {
+                    e.preventDefault();
+                });
+            });
+
+            fRefresh();
         });
         </script>
     </head>
     <body class="dark">
         <div class="viewer_div full viewer_root dark">
             <div class="viewer_div full viewer_header">
-                <table class="full layout">
+                <h3 class="full h_tool">도구 ▼</h3>
+                <table class="full layout d_tool">
                     <colgroup>
-                        <col style="width:140px;"/>
                         <col/>
-                        <col style="width:100px;"/>
                     </colgroup>
                     <tbody>
                         <tr>
-                            <th>동작</th>
-                            <td colspan="2">
-                                <select class="select select_works" tabindex="1">
-                                    <option value="embed">Embed</option>
-                                    <option value="link">Links</option>
-                                </select>
+                            <td>
+                                <h3 class="full">자동 추가 도구</h3>
+                                <table class="full layout">
+                                    <colgroup>
+                                        <col style="width:140px;"/>
+                                        <col/>
+                                        <col style="width:100px;"/>
+                                    </colgroup>
+                                    <tbody>
+                                        <tr>
+                                            <th>파일 이름 규칙</th>
+                                            <td><input type="text" class="input input_file_format" style="width: 50%" placeholder="예) 만화[00].png" tabindex="2"/></td>
+                                            <td rowspan="3" style="vertical-align: bottom;"><input type="button" class="input input_button_add_built" style="width: 100%;" value="추가" tabindex="5"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>숫자 범위</th>
+                                            <td>
+                                                <input type="number" class="input input_number_start small" step="1" min="0" value="0" tabindex="3"/>~<input type="number" class="input input_number_end small" step="1" min="0" value="0" tabindex="4"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                자동 추가는 이미지만 가능합니다. 파일 이름 규칙에 URL을 넣어도 되지만, 목차 내 파일명 자리에 URL이 들어가게 됩니다.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
                         <tr>
-                            <th>파일 이름 규칙</th>
-                            <td><input type="text" class="input input_file_format" style="width: 50%" placeholder="예) 만화[00].png" tabindex="2"/></td>
-                            <td rowspan="2"><input type="button" class="input input_button_apply" style="width: 100%;" value="적용" tabindex="5"/></td>
+                            <td>
+                                <h3 class="full">직접 추가</h3>
+                                <table class="full layout">
+                                    <colgroup>
+                                        <col style="width:140px;"/>
+                                        <col/>
+                                        <col style="width:100px;"/>
+                                    </colgroup>
+                                    <tbody>
+                                        <tr>
+                                            <th>URL</th>
+                                            <td colspan="2">
+                                                <input type="text" class="input input_add_single_url" style="width: 50%" placeholder="예) http://something.com/img/1000.jpg" tabindex="6"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>이름</th>
+                                            <td>
+                                                <input type="text" class="input input_add_single_name" placeholder="예) 1000.jpg" tabindex="7"/>
+                                            </td>
+                                            <td rowspan="2" style="vertical-align: bottom;"><input type="button" class="input input_button_add_single" style="width: 100%;" value="추가" tabindex="9"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>유형</th>
+                                            <td>
+                                                <select class="select select_add_single_type" tabindex="8">
+                                                    <option value="image">Image</option>
+                                                    <option value="video">Video (MP4)</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
                         </tr>
                         <tr>
-                            <th>숫자 범위</th>
                             <td>
-                                <input type="number" class="input input_number_start small" step="1" min="0" value="0" tabindex="3"/>~<input type="number" class="input input_number_end small" step="1" min="0" value="0" tabindex="4"/>
+                                <h3 class="full">JSON</h3>
+                                <table class="full layout dropareaJson">
+                                    <colgroup>
+                                        <col/>
+                                    </colgroup>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <textarea class="textarea textarea_json full" style="min-height: 50px;" placeholder="예) [{&quot;type&quot;:&quot;image&quot;,&quot;name&quot;:&quot;1000.jpg&quot;,&quot;url&quot;:&quot;http://something.com/img/1000.jpg&quot;,&quot;attr&quot;:{}}]" tabindex="10"></textarea>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="text-align: right;"><input type='button' class="input input_button_build_json" value="JSON 다시 생성"/><input type='button' class="input input_button_apply_json" value="JSON 변경사항 적용"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="viewer_div full viewer_content">
+            <div class="viewer_div full viewer_list">
+                <h3 class='full'>목차</h3>
+                <table class="full layout">
+                    <colgroup><col/><col style="width:120px;"/></colgroup>
+                    <tbody class="viewer_list_elements droparea"></tbody>
+                </table>
+            </div>
+            <div class="viewer_div full viewer_content droparea">
 
             </div>
             <div class="viewer_div viewer_footer_remote">
-                <div><input type="button" class="input input_button_top" value="TOP↑"/></div>
-                <span style="font-size: 6px;">version 2023.09.18</span>
+                <div><input type="button" class="input input_button_top" value="TOP↑" tabindex="99" accesskey="t"/></div>
+                <span style="font-size: 6px;">version 2023.09.28</span>
+            </div>
+            <div class="viewer_div viewer_hidden">
+                <input type="button" class="btn_hidden_tool" accesskey="y"/>
             </div>
         </div>
     </body>
