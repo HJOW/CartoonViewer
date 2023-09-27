@@ -34,7 +34,7 @@
         body div.viewer_root, body div.viewer_root div, body div.viewer_root p, body div.viewer_root td, body div.viewer_root th
         , body div.viewer_root span, body div.viewer_root a, body div.viewer_root button, body div.viewer_root input, body div.viewer_root select
         , body div.viewer_root textarea, body div.viewer_root label, body div.viewer_root pre {
-            font-family: 'D2Coding', 'Nanum Gothic Coding', 'NanumGothicCoding', '나눔고딕코딩', 'Nanum Gothic', 'NanumGothic', '나눔고딕';
+            font-family: 'D2Coding', 'NanumGothicCoding', '나눔고딕코딩', 'Nanum Gothic Coding', 'Nanum Gothic', 'NanumGothic', '나눔고딕';
         }
         body div.viewer_root pre {
             font-size: 0.8rem;
@@ -251,6 +251,16 @@ null==d?void 0:d))},attrHooks:{type:{set:function(a,b){if(!o.radioValue&&"radio"
                         } else if(element.type == 'web') {
                             divCont.html("<iframe class='full' style='min-height: 300px; overflow-x: scroll; overflow-y: scroll;'></iframe>");
                             divCont.find('iframe').attr('src', element.url);
+                        } else if(element.type == 'text') {
+                            divCont.html("<pre class='full'></pre>");
+                            var pre = divCont.find('pre');
+                            $.ajax({
+                                url : element.url,
+                                dataType : 'text',
+                                success : function(data) {
+                                    pre.text(data);
+                                }
+                            });
                         }
 
                         if(divList != null) {
@@ -507,6 +517,7 @@ null==d?void 0:d))},attrHooks:{type:{set:function(a,b){if(!o.radioValue&&"radio"
                                                     <option value="image">Image</option>
                                                     <option value="video">Video (MP4)</option>
                                                     <option value="web">Web (or PDF)</option>
+                                                    <option value="text">Text (URL only)</option>
                                                 </select>
                                             </td>
                                         </tr>
