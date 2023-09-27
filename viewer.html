@@ -247,6 +247,9 @@ null==d?void 0:d))},attrHooks:{type:{set:function(a,b){if(!o.radioValue&&"radio"
 
                             divCont.html("<video controls class='full'></video>");
                             divCont.find('video').append("<source src='" + strReplace(String(element.url), "'", "") + "' type='" + strReplace(String(attrType), "'", "") + "'/>");
+                        } else if(element.type == 'web') {
+                            divCont.html("<iframe class='full' style='min-height: 300px; overflow-x: scroll; overflow-y: scroll;'></iframe>");
+                            divCont.find('iframe').attr('src', element.url);
                         }
 
                         if(divList != null) {
@@ -496,6 +499,7 @@ null==d?void 0:d))},attrHooks:{type:{set:function(a,b){if(!o.radioValue&&"radio"
                                                 <select class="select select_add_single_type" tabindex="8">
                                                     <option value="image">Image</option>
                                                     <option value="video">Video (MP4)</option>
+                                                    <option value="web">Web (or PDF)</option>
                                                 </select>
                                             </td>
                                         </tr>
