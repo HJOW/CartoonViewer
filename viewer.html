@@ -51,6 +51,18 @@
         body div.viewer_root .full {
             width:100%;
         }
+        body div.viewer_root .padded_horizontal, body div.viewer_root div.viewer_div.padded_horizontal {
+            padding-left : 20px;
+            padding-right: 20px;
+        }
+        body div.viewer_root .padded_horizontal_w50, body div.viewer_root div.viewer_div.padded_horizontal_w50 {
+            padding-left : 50px;
+            padding-right: 50px;
+        }
+        body div.viewer_root .padded_horizontal_w100, body div.viewer_root div.viewer_div.padded_horizontal_w100 {
+            padding-left : 100px;
+            padding-right: 100px;
+        }
         body div.viewer_root table.layout th, body div.viewer_root table.layout td {
             border: 0;
             padding: 5px 8px 5px 8px;
@@ -450,120 +462,122 @@ null==d?void 0:d))},attrHooks:{type:{set:function(a,b){if(!o.radioValue&&"radio"
     </head>
     <body class="dark">
         <div class="viewer_div full viewer_root dark">
-            <div class="viewer_div full viewer_header">
-                <h3 class="full h_tool">도구 ▲</h3>
-                <table class="full layout d_tool">
-                    <colgroup>
-                        <col/>
-                    </colgroup>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <h3 class="full">자동 추가 도구</h3>
-                                <table class="full layout">
-                                    <colgroup>
-                                        <col style="width:140px;"/>
-                                        <col/>
-                                        <col style="width:100px;"/>
-                                    </colgroup>
-                                    <tbody>
-                                        <tr>
-                                            <th>파일 이름 규칙</th>
-                                            <td><input type="text" class="input input_file_format" style="width: 50%" placeholder="예) 만화[00].png" tabindex="2"/></td>
-                                            <td rowspan="3" style="vertical-align: bottom;"><input type="button" class="input input_button_add_built" style="width: 100%;" value="추가" tabindex="5"/></td>
-                                        </tr>
-                                        <tr>
-                                            <th>숫자 범위</th>
-                                            <td>
-                                                <input type="number" class="input input_number_start small" step="1" min="0" value="0" tabindex="3"/>~<input type="number" class="input input_number_end small" step="1" min="0" value="0" tabindex="4"/>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="2">
-                                                자동 추가는 이미지만 가능합니다. 파일 이름 규칙에 URL을 넣어도 되지만, 목차 내 파일명 자리에 URL이 들어가게 됩니다.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <h3 class="full">직접 추가</h3>
-                                <table class="full layout">
-                                    <colgroup>
-                                        <col style="width:140px;"/>
-                                        <col/>
-                                        <col style="width:100px;"/>
-                                    </colgroup>
-                                    <tbody>
-                                        <tr>
-                                            <th>URL</th>
-                                            <td colspan="2">
-                                                <input type="text" class="input input_add_single_url" style="width: 50%" placeholder="예) http://something.com/img/1000.jpg" tabindex="6"/>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>이름</th>
-                                            <td>
-                                                <input type="text" class="input input_add_single_name" placeholder="예) 1000.jpg" tabindex="7"/>
-                                            </td>
-                                            <td rowspan="2" style="vertical-align: bottom;"><input type="button" class="input input_button_add_single" style="width: 100%;" value="추가" tabindex="9"/></td>
-                                        </tr>
-                                        <tr>
-                                            <th>유형</th>
-                                            <td>
-                                                <select class="select select_add_single_type" tabindex="8">
-                                                    <option value="image">Image</option>
-                                                    <option value="video">Video (MP4)</option>
-                                                    <option value="web">Web (or PDF)</option>
-                                                    <option value="text">Text (URL only)</option>
-                                                </select>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <h3 class="full">JSON 백업 / 복원</h3>
-                                <table class="full layout dropareaJson">
-                                    <colgroup>
-                                        <col/>
-                                    </colgroup>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <textarea class="textarea textarea_json full" style="min-height: 50px;" placeholder="예) [{&quot;type&quot;:&quot;image&quot;,&quot;name&quot;:&quot;1000.jpg&quot;,&quot;url&quot;:&quot;http://something.com/img/1000.jpg&quot;,&quot;attr&quot;:{}}]" tabindex="10"></textarea>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="text-align: right;"><input type='button' class="input input_button_build_json" value="JSON 다시 생성"/><input type='button' class="input input_button_apply_json" value="JSON 변경사항 적용"/></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="viewer_div full viewer_list">
-                <h3 class='full'>목차</h3>
-                <table class="full layout">
-                    <colgroup><col/><col style="width:120px;"/></colgroup>
-                    <tbody class="viewer_list_elements droparea"></tbody>
-                </table>
-            </div>
-            <div class="viewer_div full viewer_content droparea">
-
-            </div>
-            <div class="viewer_div viewer_footer_remote">
-                <div><input type="button" class="input input_button_top" value="TOP↑" tabindex="99" accesskey="t"/></div>
-                <span style="font-size: 6px;" class='span_version'>ver 2023.09.28 02</span>
-            </div>
-            <div class="viewer_div viewer_hidden">
-                <input type="button" class="btn_hidden_tool" accesskey="y"/>
+            <div class="viewer_div viewer_container padded_horizontal_w50">
+                <div class="viewer_div full viewer_header">
+                    <h3 class="full h_tool">도구 ▲</h3>
+                    <table class="full layout d_tool">
+                        <colgroup>
+                            <col/>
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <h3 class="full">자동 추가 도구</h3>
+                                    <table class="full layout">
+                                        <colgroup>
+                                            <col style="width:140px;"/>
+                                            <col/>
+                                            <col style="width:100px;"/>
+                                        </colgroup>
+                                        <tbody>
+                                            <tr>
+                                                <th>파일 이름 규칙</th>
+                                                <td><input type="text" class="input input_file_format" style="width: 50%" placeholder="예) 만화[00].png" tabindex="2"/></td>
+                                                <td rowspan="3" style="vertical-align: bottom;"><input type="button" class="input input_button_add_built" style="width: 100%;" value="추가" tabindex="5"/></td>
+                                            </tr>
+                                            <tr>
+                                                <th>숫자 범위</th>
+                                                <td>
+                                                    <input type="number" class="input input_number_start small" step="1" min="0" value="0" tabindex="3"/>~<input type="number" class="input input_number_end small" step="1" min="0" value="0" tabindex="4"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                    자동 추가는 이미지만 가능합니다. 파일 이름 규칙에 URL을 넣어도 되지만, 목차 내 파일명 자리에 URL이 들어가게 됩니다.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <h3 class="full">직접 추가</h3>
+                                    <table class="full layout">
+                                        <colgroup>
+                                            <col style="width:140px;"/>
+                                            <col/>
+                                            <col style="width:100px;"/>
+                                        </colgroup>
+                                        <tbody>
+                                            <tr>
+                                                <th>URL</th>
+                                                <td colspan="2">
+                                                    <input type="text" class="input input_add_single_url" style="width: 50%" placeholder="예) http://something.com/img/1000.jpg" tabindex="6"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>이름</th>
+                                                <td>
+                                                    <input type="text" class="input input_add_single_name" placeholder="예) 1000.jpg" tabindex="7"/>
+                                                </td>
+                                                <td rowspan="2" style="vertical-align: bottom;"><input type="button" class="input input_button_add_single" style="width: 100%;" value="추가" tabindex="9"/></td>
+                                            </tr>
+                                            <tr>
+                                                <th>유형</th>
+                                                <td>
+                                                    <select class="select select_add_single_type" tabindex="8">
+                                                        <option value="image">Image</option>
+                                                        <option value="video">Video (MP4)</option>
+                                                        <option value="web">Web (or PDF)</option>
+                                                        <option value="text">Text (URL only)</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <h3 class="full">JSON 백업 / 복원</h3>
+                                    <table class="full layout dropareaJson">
+                                        <colgroup>
+                                            <col/>
+                                        </colgroup>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <textarea class="textarea textarea_json full" style="min-height: 50px;" placeholder="예) [{&quot;type&quot;:&quot;image&quot;,&quot;name&quot;:&quot;1000.jpg&quot;,&quot;url&quot;:&quot;http://something.com/img/1000.jpg&quot;,&quot;attr&quot;:{}}]" tabindex="10"></textarea>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: right;"><input type='button' class="input input_button_build_json" value="JSON 다시 생성"/><input type='button' class="input input_button_apply_json" value="JSON 변경사항 적용"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="viewer_div full viewer_list">
+                    <h3 class='full'>목차</h3>
+                    <table class="full layout">
+                        <colgroup><col/><col style="width:120px;"/></colgroup>
+                        <tbody class="viewer_list_elements droparea"></tbody>
+                    </table>
+                </div>
+                <div class="viewer_div full viewer_content droparea">
+    
+                </div>
+                <div class="viewer_div viewer_footer_remote">
+                    <div><input type="button" class="input input_button_top" value="TOP↑" tabindex="99" accesskey="t"/></div>
+                    <span style="font-size: 6px;" class='span_version'>ver 2024.03.05 01</span>
+                </div>
+                <div class="viewer_div viewer_hidden">
+                    <input type="button" class="btn_hidden_tool" accesskey="y"/>
+                </div>
             </div>
         </div>
     </body>
